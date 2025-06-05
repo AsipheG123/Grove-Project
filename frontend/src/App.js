@@ -58,27 +58,35 @@ const App = () => {
   };
 
   const handleLogin = async (credentials) => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await axios.post(`${API}/auth/login`, credentials);
-      const { access_token, user: userData } = response.data;
-      
-      setToken(access_token);
-      setUser(userData);
-      localStorage.setItem('grove_token', access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      
-      if (userData.role === 'worker') {
-        setCurrentScreen('worker-dashboard');
-      } else {
-        setCurrentScreen('requester-dashboard');
-      }
-    } catch (error) {
-      setError(error.response?.data?.detail || 'Login failed');
+  try {
+    const response = await axios.post(`${API}/auth/login`, credentials);
+    console.log(response); 
+    if (response.data && response.data.detail) {
+      // Show specific error from API response
+      setError(response.data.detail);
+    } else if (response.data && response.data.token) {
+      setToken(response.data.token);
+      localStorage.setItem('grove_token', response.data.token);
+      setUser(response.data.user);
+      setCurrentScreen('home');
+    } else {
+      setError('Unexpected response from server.');
     }
-    setLoading(false);
-  };
+  } catch (error) {
+    if (error.response) {
+      // Check for status codes and display tailored errors
+      if (error.response.status === 401) {
+        setError('Incorrect password. Please try again.');
+      } else if (error.response.status === 404) {
+        setError('Email not found. Please sign up.');
+      } else {
+        setError(error.response.data.detail || 'Login failed. Please try again.');
+      }
+    } else {
+      setError('Network error. Please check your connection.');
+    }
+  }
+};
 
   const handleRegister = async (userData) => {
     setLoading(true);
@@ -111,6 +119,8 @@ const App = () => {
         return <LoginScreen onLogin={handleLogin} onNavigate={setCurrentScreen} loading={loading} error={error} />;
       case 'register':
         return <RegisterScreen onRegister={handleRegister} onNavigate={setCurrentScreen} loading={loading} error={error} config={config} />;
+      case 'forgotPassword':
+        return <ForgotPasswordScreen onNavigate={setCurrentScreen} />;
       case 'worker-dashboard':
         return <WorkerDashboard user={user} onNavigate={setCurrentScreen} onLogout={logout} />;
       case 'requester-dashboard':
@@ -176,8 +186,51 @@ const WelcomeScreen = ({ onNavigate }) => (
 
 // Login Screen
 const LoginScreen = ({ onLogin, onNavigate, loading, error }) => {
+  const ForgotPasswordScreen = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/auth/forgot-password`, { email });
+      setMessage('A password reset link has been sent to your email.');
+    } catch (error) {
+      setMessage('Error sending password reset email. Please try again.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+      <h2 className="text-3xl font-bold mb-4">Forgot Password</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white px-3 py-2 rounded-md"
+        >
+          Reset Password
+        </button>
+      </form>
+      {message && <p className="mt-4 text-center">{message}</p>}
+      <button
+        className="mt-4 text-blue-600 hover:underline"
+        onClick={() => onNavigate('login')}
+      >
+        Back to Sign In
+      </button>
+    </div>
+  );
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -223,6 +276,13 @@ const LoginScreen = ({ onLogin, onNavigate, loading, error }) => {
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
               />
             </div>
+            <div></div>
+            <p className="mt-2 text-sm text-blue-600 cursor-pointer hover:underline"
+            onClick={() => onNavigate('forgotPassword')}>
+              Forgot Password?
+              /
+            </p>
+
 
             <button
               type="submit"
@@ -369,18 +429,15 @@ const RegisterScreen = ({ onRegister, onNavigate, loading, error, config }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">City</label>
-              <select
-                name="city"
-                required
-                value={formData.city}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="">Select your city</option>
-                {config.cities.map(city => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
+              <input
+              name="city"
+              required
+              type="text"
+              value={formData.city}
+              onChange={handleChange}
+              placeholder="Enter your city"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
             </div>
 
             <div>
