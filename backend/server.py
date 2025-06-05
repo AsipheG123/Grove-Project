@@ -127,12 +127,11 @@ class MessageResponse(Message):
     created_at: datetime
 
 # Cities list for dropdown
-CITIES = [
-    "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia",
-    "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville",
-    "Fort Worth", "Columbus", "Charlotte", "San Francisco", "Indianapolis",
-    "Seattle", "Denver", "Washington", "Boston", "Nashville", "Detroit", "Portland"
-]
+SOUTH_AFRICA_CITIES = [
+  "Johannesburg", "Pretoria", "Cape Town", "Durban",
+  "Bloemfontein", "Port Elizabeth", "East London",
+  "Polokwane", "Mbombela", "Kimberley"
+];
 
 JOB_CATEGORIES = [
     "Cleaning", "Yardwork", "Childcare", "House Help", "General Repairs",
@@ -188,7 +187,7 @@ async def root():
 @api_router.get("/config")
 async def get_config():
     return {
-        "cities": CITIES,
+        "cities": SOUTH_AFRICA_CITIES,
         "job_categories": JOB_CATEGORIES
     }
 

@@ -28,7 +28,7 @@ const App = () => {
   const fetchConfig = async () => {
     try {
       const response = await axios.get(`${API}/config`);
-      setConfig(response.data);
+      setConfig({ ...response.data, cities: southAfricaCities });
     } catch (error) {
       console.error('Failed to fetch config:', error);
     }
@@ -89,27 +89,28 @@ const App = () => {
 };
 
   const handleRegister = async (userData) => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await axios.post(`${API}/auth/register`, userData);
-      const { access_token, user: newUser } = response.data;
-      
-      setToken(access_token);
-      setUser(newUser);
-      localStorage.setItem('grove_token', access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      
-      if (newUser.role === 'worker') {
-        setCurrentScreen('worker-dashboard');
-      } else {
-        setCurrentScreen('requester-dashboard');
-      }
-    } catch (error) {
-      setError(error.response?.data?.detail || 'Registration failed');
+  try {
+    const response = await axios.post(`${API}/auth/register`, userData);
+    const { newUser, access_token } = response.data;
+
+    setUser(newUser);
+    localStorage.setItem('grove_token', access_token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+
+    if (newUser.role === 'worker') {
+      setCurrentScreen('worker-dashboard');
+    } else {
+      setCurrentScreen('requester-dashboard');
     }
+
     setLoading(false);
-  };
+  } catch (error) {
+    console.error("Registration error:", error.response?.data || error.message);
+    setError(error.response?.data.detail || "Registration failed. Please try again.");
+    setLoading(false);
+  }
+};
+
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -151,10 +152,10 @@ const App = () => {
 const WelcomeScreen = ({ onNavigate }) => (
   <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-600 flex flex-col justify-center items-center px-4">
     <div className="text-center text-white mb-8">
-      <h1 className="text-6xl font-bold mb-4">🌱 Grove</h1>
+      <h1 className="text-6xl font-bold mb-4">🌱Grove</h1>
       <p className="text-xl mb-2">Connect. Work. Grow.</p>
       <p className="text-green-100 max-w-md mx-auto">
-        The marketplace that connects skilled workers with meaningful opportunities
+        Connecting capable workers with meaningful opportunities
       </p>
     </div>
     
@@ -174,7 +175,7 @@ const WelcomeScreen = ({ onNavigate }) => (
     </div>
     
     <div className="mt-12 text-center text-green-100">
-      <p className="text-sm mb-2">Join thousands of workers and businesses</p>
+      <p className="text-sm mb-2">Find valuable experiences and develop connections.</p>
       <div className="flex justify-center space-x-6 text-xs">
         <span>✓ Verified profiles</span>
         <span>✓ Secure payments</span>
@@ -186,9 +187,10 @@ const WelcomeScreen = ({ onNavigate }) => (
 
 // Login Screen
 const LoginScreen = ({ onLogin, onNavigate, loading, error }) => {
-  const ForgotPasswordScreen = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [password, setPassword] = useState('');
+  const ForgotPasswordScreen = ({ onNavigate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
