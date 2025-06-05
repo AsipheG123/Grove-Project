@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import ForgotPasswordScreen from './ForgotPasswordScreen';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -60,7 +61,8 @@ const App = () => {
   const handleLogin = async (credentials) => {
   try {
     const response = await axios.post(`${API}/auth/login`, credentials);
-    console.log(response); 
+    console.log(response);
+
     if (response.data && response.data.detail) {
       // Show specific error from API response
       setError(response.data.detail);
@@ -70,7 +72,7 @@ const App = () => {
       setUser(response.data.user);
       setCurrentScreen('home');
     } else {
-      setError('Unexpected response from server.');
+      setError("Unknown error. Please try again.");
     }
   } catch (error) {
     if (error.response) {
@@ -272,6 +274,7 @@ const LoginScreen = ({ onLogin, onNavigate, loading, error }) => {
               <label className="block text-sm font-medium text-gray-700">Password</label>
               <input
                 type="password"
+                name="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
