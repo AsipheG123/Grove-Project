@@ -28,7 +28,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files (never commit secrets)
+.env
+.env*
 # .env*.local
 *token.json*
 # vercel
@@ -38,7 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 *pyc*
-#*.env
 .ac
 agenthub/agents/youtube/db
 *credentials.json*
@@ -46,6 +47,9 @@ agenthub/agents/youtube/db
 venv/
 .venv/
 __pycache__/
+
+# User uploads (runtime data, not source)
+backend/uploads/
 
 # ===================
 # ADDITIONAL RULES TO PREVENT FILE SIZE VIOLATIONS
