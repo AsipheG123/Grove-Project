@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
-const API = process.env.REACT_APP_BACKEND_URL;
-const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL || 'http://localhost:8000'; // Assuming base URL without /api
+const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL || API;
 
 const parseError = (error) => {
   if (error.response) {
